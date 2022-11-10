@@ -31,61 +31,47 @@ export class Parser {
         this.nextToken = this.tokenIterator.next().value
     }
 
-    /**
-    * 主表达式解析
-    */
-    private parseMainExpression: ParserStep<MainExpressionNode> = () => {
-        let leftNode: NumberNode | IdentifierNode | MainExpressionNode
+    private parseExpression: ParserStep<ExpressionNode> = () => {
+        let node: ExpressionNode;
         switch (this.currentToken.type) {
-            case "parens":
-                this.eatToken()
-                leftNode = this.parseMainExpression()
-                this.eatToken()
-                break
             case "number":
-                leftNode = {
-                    type: 'number',
+                node = {
+                    type: "numberLiteral",
                     value: Number(this.currentToken.value)
-                }
+                };
                 this.eatToken();
-                break
+                return node;
             case "identifier":
-                leftNode = {
-                    type: "identifier",
-                    value: this.currentToken.value
+                node = { type: "identifier", value: this.currentToken.value };
+                this.eatToken();
+                return node;
+            case "parens":
+                this.eatToken("(");
+                const left = this.parseExpression();
+                const operator = this.currentToken.value;
+                if (!this.isOperatop(operator)) {
+                    throw new ParserError(
+                        `Unexpected token value, expected operator, received ${operator}`,
+                        this.currentToken
+                    );
                 }
                 this.eatToken();
-                break
+                const right = this.parseExpression();
+                this.eatToken(")");
+                return {
+                    type: "binaryExpression",
+                    left,
+                    right,
+                    operator: operator as Operator
+                };
             default:
                 throw new ParserError(
                     `Unexpected token type ${this.currentToken.type}`,
                     this.currentToken
                 );
         }
-        return {
-            type: "mainExpression",
-            left: leftNode,
-            right: this.parseSubExpression()
-        }
-    }
-    /**
-     * 副表达式解析
-     */
-    private parseSubExpression: ParserStep<SubExpressionNode> = () => {
-        if (!this.currentToken || !this.isOperatop(this.currentToken.value))
-            return {
-                type: 'subExpression',
-                isNull: true
-            }
-        const operator = this.currentToken.value
-        this.eatToken()
-        return {
-            type: 'subExpression',
-            operator: operator as Operator,
-            right: this.parseMainExpression(),
-            isNull: false
-        }
-    }
+    };
+
 
     /**
      * print语句解析
@@ -95,7 +81,7 @@ export class Parser {
         this.eatToken("print");
         return {
             type: "printStatement",
-            expression: this.parseMainExpression()
+            expression: this.parseExpression()
         };
     }
 
@@ -113,7 +99,7 @@ export class Parser {
                 type: 'identifier',
                 value: name
             },
-            value: this.parseMainExpression()
+            value: this.parseExpression()
         };
     }
 
@@ -132,7 +118,7 @@ export class Parser {
                 type: 'identifier',
                 value: name
             },
-            initializer: this.parseMainExpression()
+            initializer: this.parseExpression()
         };
     }
 

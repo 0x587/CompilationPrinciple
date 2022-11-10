@@ -4,7 +4,7 @@ interface ProgramNode {
 
 type Operator = "+" | "-" | "/" | "*" | "==" | ">" | "<" | "&&";
 
-type ExpressionNode = NumberNode | IdentifierNode | MainExpressionNode | SubExpressionNode;
+type ExpressionNode = NumberLiteralNode | BinaryExpressionNode | IdentifierNode;
 
 type StatementNode =
     | PrintStatementNode
@@ -25,27 +25,21 @@ interface VariableAssignmentNode extends ProgramNode {
     value: ExpressionNode;
 }
 
-interface NumberNode extends ProgramNode {
-    type: "number";
+interface NumberLiteralNode extends ProgramNode {
+    type: "numberLiteral";
     value: number;
-}
+  }
 
 interface IdentifierNode extends ProgramNode {
     type: "identifier";
     value: string;
 }
 
-interface MainExpressionNode extends ProgramNode {
-    type: 'mainExpression'
-    left: NumberNode | IdentifierNode | MainExpressionNode
-    right: SubExpressionNode
-}
-
-interface SubExpressionNode extends ProgramNode {
-    type: 'subExpression'
-    isNull: boolean
-    operator?: Operator
-    right?: MainExpressionNode
+interface BinaryExpressionNode extends ProgramNode {
+    type: "binaryExpression";
+    left: ExpressionNode;
+    right: ExpressionNode;
+    operator: Operator;
 }
 
 interface PrintStatementNode extends ProgramNode {
