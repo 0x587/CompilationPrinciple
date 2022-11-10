@@ -35,8 +35,13 @@ export class Parser {
     * 主表达式解析
     */
     private parseMainExpression: ParserStep<MainExpressionNode> = () => {
-        let leftNode: NumberNode | IdentifierNode 
+        let leftNode: NumberNode | IdentifierNode | MainExpressionNode
         switch (this.currentToken.type) {
+            case "parens":
+                this.eatToken()
+                leftNode = this.parseMainExpression()
+                this.eatToken()
+                break
             case "number":
                 leftNode = {
                     type: 'number',
@@ -80,7 +85,6 @@ export class Parser {
             right: this.parseMainExpression(),
             isNull: false
         }
-
     }
 
     /**

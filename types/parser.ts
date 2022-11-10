@@ -37,7 +37,7 @@ interface IdentifierNode extends ProgramNode {
 
 interface MainExpressionNode extends ProgramNode {
     type: 'mainExpression'
-    left: NumberNode | IdentifierNode
+    left: NumberNode | IdentifierNode | MainExpressionNode
     right: SubExpressionNode
 }
 
