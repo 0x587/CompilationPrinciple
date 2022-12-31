@@ -32,13 +32,14 @@ export class Tokenizer {
 
   // 词法匹配规则
   private matchers = [
-    this.regexMatcher("^-?[.0-9]+([eE]-?[0-9]{2})?", "number"),
-    this.regexMatcher(`^(${keywords.join("|")})`, "keyword"),
-    this.regexMatcher("^\\s+", "whitespace"),
-    this.regexMatcher(`^(${operators.map(this.escapeRegEx).join("|")})`, "operator"),
-    this.regexMatcher(`^[a-zA-Z]+`, "identifier"),
-    this.regexMatcher(`^=`, "assignment"),
-    this.regexMatcher("^[()]{1}", "parens")
+    this.regexMatcher(String.raw`^((\/\/[^\n]*)|(\/\*(([^\*][^\/])*|(\*[^\/]*)*|([^\*]*\/)*)*\*\/))`, "annotation"),
+    this.regexMatcher(String.raw`^\s+`, "whitespace"),
+    this.regexMatcher(String.raw`^-?((0|[1-9][0-9]*)(\.[0-9]*)?|\.[0-9]*)([eE]-?(0|[1-9][0-9]*))?`, "number"),
+    this.regexMatcher(String.raw`^(${keywords.join("|")})`, "keyword"),
+    this.regexMatcher(String.raw`^(${operators.map(this.escapeRegEx).join("|")})`, "operator"),
+    this.regexMatcher(String.raw`^[_A-Za-z]\w*`, "identifier"),
+    this.regexMatcher(String.raw`^=`, "assignment"),
+    this.regexMatcher(String.raw`^[()]`, "parens")
   ];
 
   public tokenize = (input: string) => {
@@ -49,7 +50,7 @@ export class Tokenizer {
       if (matches.length > 0) {
         // 取最高优先级匹配结果
         const match = matches[0]!;
-        if (match?.type !== "whitespace") {
+        if (match?.type !== "whitespace" && match?.type !== "annotation") {
           tokens.push({ ...match, ...locationForIndex(input, index) })
         }
         index += match.value.length;
