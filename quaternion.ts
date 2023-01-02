@@ -28,7 +28,7 @@ export class JumpQuaternion implements Quaternion {
         this.exit = exit
     }
     public toString(): string {
-        return `(jump, -, -, ${this.exit})`
+        return `(jump, _, _, ${this.exit})`
     }
 }
 
@@ -41,7 +41,7 @@ export class JumpNZQuaternion implements Quaternion {
         this.exit = exit
     }
     public toString(): string {
-        return `(jnz, ${this.argument}, , ${this.exit})`
+        return `(jnz, ${this.argument}, _, ${this.exit})`
     }
 }
 
@@ -54,7 +54,7 @@ export class JumpEZQuaternion implements Quaternion {
         this.exit = exit
     }
     public toString(): string {
-        return `(jez, ${this.argument}, , ${this.exit})`
+        return `(jez, ${this.argument}, _, ${this.exit})`
     }
 }
 

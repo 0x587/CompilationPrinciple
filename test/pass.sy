@@ -2,21 +2,17 @@ auto a = 1;
 a = (a + 2);
 if (a == 1)
 {
-    print 2;
-    print 4;
+    a = 0;
 }
 while (a < 0)
 {
-    print 1;
-    print 3;
-    auto b = 0;
+    auto b = (a + 1);
+    a = b;
 }
 for (auto i = 0; i < 10; i = i + 1)
 {
-    print 5;
-    print 8;
-    print 7;
+    auto b = 0;
 }
-for (auto i = 0; i < a; i = i + 1) {
+for (auto i = a; i + 1; i = i / 2) {
     i = 1;
 }
