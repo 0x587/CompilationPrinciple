@@ -14,6 +14,7 @@ export class Parser {
     private tokenIterator: IterableIterator<Token>
     private currentToken: Token
     private nextToken: Token
+    private identifierTable: string[][] = [[]]
     constructor(tokens: Token[]) {
         this.tokenIterator = tokens[Symbol.iterator]()
         this.currentToken = this.tokenIterator.next().value as Token
@@ -159,7 +160,9 @@ export class Parser {
             }
         } else if (this.currentToken.type === "identifier") {
             if (this.nextToken.value === "=") {
-                return this.parseVariableAssignment();
+                const result = this.parseVariableAssignment();
+                this.eatToken(';');
+                return result
             } else {
                 throw new ParserError(
                     `Unexpected token value, expected =, received ${this.currentToken.value}`
@@ -244,11 +247,88 @@ export class Parser {
         return node
     }
 
+    private indentifierTableInclude = (identifier: IdentifierNode): boolean => {
+        for (const table of this.identifierTable) {
+            if (table.includes(identifier.value))
+                return true
+        }
+        return false
+    }
+
+    private checkIdentifierDeclaration = (identifier: IdentifierNode): never | void => {
+        if (this.indentifierTableInclude(identifier)) {
+            throw new ParserError(`Identifier ${identifier.value} already exists.`, identifier)
+        }
+        this.identifierTable[this.identifierTable.length - 1].push(identifier.value)
+    }
+
+    private checkIdentifier = (identifier: IdentifierNode): never | void => {
+        if (!this.indentifierTableInclude(identifier)) {
+            throw new ParserError(`Identifier ${identifier.value} does not exist.`, identifier)
+        }
+    }
+
+    private checkExpression = (expression: ExpressionNode): never | void => {
+        switch (expression.type) {
+            case 'binaryExpression':
+                this.checkExpression(expression.left)
+                this.checkExpression(expression.right)
+                break;
+            case 'identifier':
+                this.checkIdentifier(expression)
+                break;
+            default:
+                break;
+        }
+    }
+
+    private checkStatement = (statements: StatementNode[]): never | void => {
+        statements.forEach(statement => {
+            switch (statement.type) {
+                case 'variableDeclaration':
+                    this.checkIdentifierDeclaration(statement.name)
+                    this.checkExpression(statement.initializer)
+                    break;
+                case 'variableAssignment':
+                    this.checkIdentifier(statement.name)
+                    this.checkExpression(statement.value)
+                    break;
+                case 'printStatement':
+                    this.checkExpression(statement.expression)
+                    break;
+                case 'ifStatementNode':
+                    this.checkExpression(statement.condition)
+                    this.identifierTable.push([])
+                    this.checkStatement(statement.statements)
+                    this.identifierTable.pop()
+                    break;
+                case 'whileStatementNode':
+                    this.checkExpression(statement.condition)
+                    this.identifierTable.push([])
+                    this.checkStatement(statement.statements)
+                    this.identifierTable.pop()
+                    break;
+                case 'forStatementNode':
+                    this.checkStatement([statement.initializer])
+                    this.checkExpression(statement.condition)
+                    this.checkStatement([statement.increment])
+                    this.identifierTable.push([])
+                    this.checkStatement(statement.statements)
+                    this.identifierTable.pop()
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+
     public parse() {
         const nodes: StatementNode[] = [];
         while (this.currentToken) {
             nodes.push(this.parseStatement());
         }
+        this.identifierTable = [[]];
+        this.checkStatement(nodes);
         return nodes;
     }
 }
