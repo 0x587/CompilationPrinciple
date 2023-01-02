@@ -1,6 +1,6 @@
 import { operators } from "./constance";
 import { Token } from "./types/tokenizer";
-import { StatementNode, Operator, ParserStep, VariableDeclarationNode, VariableAssignmentNode, PrintStatementNode, ExpressionNode, IfStatementNode, WhileStatementNode } from "./types/parser"
+import { StatementNode, Operator, ParserStep, VariableDeclarationNode, VariableAssignmentNode, PrintStatementNode, ExpressionNode, IfStatementNode, WhileStatementNode, ForStatementNode, IdentifierNode, BinaryExpressionNode } from "./types/parser"
 
 export class ParserError extends Error {
     token: Token;
@@ -33,6 +33,24 @@ export class Parser {
         this.nextToken = this.tokenIterator.next().value
     }
 
+    private parseBinaryExpression = () => {
+        const left = this.parseExpression();
+        const operator = this.currentToken.value;
+        if (!this.isOperatop(operator)) {
+            throw new ParserError(
+                `Unexpected token value, expected operator, received ${operator}`,
+                this.currentToken
+            );
+        }
+        this.eatToken();
+        const right = this.parseExpression();
+        return {
+            left,
+            right,
+            operator: operator as Operator
+        };
+    }
+
     private parseExpression: ParserStep<ExpressionNode> = () => {
         let node: ExpressionNode;
         switch (this.currentToken.type) {
@@ -49,16 +67,7 @@ export class Parser {
                 return node;
             case "parens":
                 this.eatToken("(");
-                const left = this.parseExpression();
-                const operator = this.currentToken.value;
-                if (!this.isOperatop(operator)) {
-                    throw new ParserError(
-                        `Unexpected token value, expected operator, received ${operator}`,
-                        this.currentToken
-                    );
-                }
-                this.eatToken();
-                const right = this.parseExpression();
+                const { left, right, operator } = this.parseBinaryExpression()
                 this.eatToken(")");
                 return {
                     type: "binaryExpression",
@@ -140,6 +149,8 @@ export class Parser {
                     return this.parseIfStatementNode();
                 case "while":
                     return this.parseWhileStatementNode();
+                case "for":
+                    return this.parseForStatementNode();
                 default:
                     throw new ParserError(
                         `Unknown keyword ${this.currentToken.value}`,
@@ -175,11 +186,54 @@ export class Parser {
         this.eatToken('}')
         return node
     }
+
     private parseWhileStatementNode: ParserStep<WhileStatementNode> = () => {
         this.eatToken('while')
         const node: WhileStatementNode = {
             type: 'whileStatementNode',
             condition: this.parseExpression(),
+            statements: []
+        }
+        this.eatToken('{')
+        while (this.currentToken.value !== '}') {
+            node.statements.push(this.parseStatement())
+        }
+        this.eatToken('}')
+        return node
+    }
+
+    private parseForStatementNode: ParserStep<ForStatementNode> = () => {
+        this.eatToken('for');
+        this.eatToken('(');
+        const initializer = this.parseStatement();
+        const { left, right, operator } = this.parseBinaryExpression()
+        const condition: ExpressionNode = {
+            type: "binaryExpression",
+            left,
+            right,
+            operator: operator as Operator
+        };
+        this.eatToken(';');
+        const name = this.currentToken.value;
+        this.eatToken()
+        this.eatToken('=')
+        const increment: VariableAssignmentNode = {
+            type: "variableAssignment",
+            name: {
+                type: 'identifier',
+                value: name
+            } as IdentifierNode,
+            value: {
+                type: 'binaryExpression',
+                ...this.parseBinaryExpression()
+            } as BinaryExpressionNode
+        }
+        this.eatToken(')');
+        const node: ForStatementNode = {
+            type: 'forStatementNode',
+            initializer,
+            condition,
+            increment,
             statements: []
         }
         this.eatToken('{')

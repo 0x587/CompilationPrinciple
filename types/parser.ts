@@ -58,9 +58,9 @@ export interface WhileStatementNode extends ProgramNode {
 }
 export interface ForStatementNode extends ProgramNode {
     type: "forStatementNode";
-    initializer: ExpressionNode;
+    initializer: StatementNode;
     condition: ExpressionNode;
-    increment: ExpressionNode;
+    increment: StatementNode;
     statements: StatementNode[];
 }
 

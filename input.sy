@@ -1,5 +1,4 @@
 auto a = 1;
-a++;
 if (a == 1)
 {
     print 2;
@@ -10,7 +9,9 @@ while (a < 0)
     print 1;
     print 3;
 }
-// for (auto i = 0; i < 10; i++)
-// {
-//     /* code */
-// }
+for (auto i = 0; i < 10; i = i + 1)
+{
+    print 5;
+    print 8;
+    print 7;
+}
