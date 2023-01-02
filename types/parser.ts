@@ -4,12 +4,15 @@ export interface ProgramNode {
 
 export type Operator = "+" | "-" | "/" | "*" | "==" | ">" | "<" | "&&";
 
-export type ExpressionNode = NumberNode | IdentifierNode | MainExpressionNode | SubExpressionNode;
+export type ExpressionNode = NumberLiteralNode | BinaryExpressionNode | IdentifierNode;
 
 export type StatementNode =
     | PrintStatementNode
     | VariableDeclarationNode
     | VariableAssignmentNode
+    | IfStatementNode
+    | WhileStatementNode
+    | ForStatementNode
 
 export type Program = StatementNode[];
 
@@ -25,8 +28,8 @@ export interface VariableAssignmentNode extends ProgramNode {
     value: ExpressionNode;
 }
 
-export interface NumberNode extends ProgramNode {
-    type: "number";
+export interface NumberLiteralNode extends ProgramNode {
+    type: "numberLiteral";
     value: number;
 }
 
@@ -35,17 +38,30 @@ export interface IdentifierNode extends ProgramNode {
     value: string;
 }
 
-export interface MainExpressionNode extends ProgramNode {
-    type: 'mainExpression'
-    left: NumberNode | IdentifierNode | MainExpressionNode
-    right: SubExpressionNode
+export interface BinaryExpressionNode extends ProgramNode {
+    type: "binaryExpression";
+    left: ExpressionNode;
+    right: ExpressionNode;
+    operator: Operator;
 }
 
-export interface SubExpressionNode extends ProgramNode {
-    type: 'subExpression'
-    isNull: boolean
-    operator?: Operator
-    right?: MainExpressionNode
+export interface IfStatementNode extends ProgramNode {
+    type: "ifStatementNode";
+    condition: ExpressionNode;
+    statements: StatementNode[];
+}
+
+export interface WhileStatementNode extends ProgramNode {
+    type: "whileStatementNode";
+    condition: ExpressionNode;
+    statements: StatementNode[];
+}
+export interface ForStatementNode extends ProgramNode {
+    type: "forStatementNode";
+    initializer: ExpressionNode;
+    condition: ExpressionNode;
+    increment: ExpressionNode;
+    statements: StatementNode[];
 }
 
 export interface PrintStatementNode extends ProgramNode {

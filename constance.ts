@@ -1,5 +1,8 @@
 export const keywords = [
-    "print",
-    "var"
-  ];
-  export const operators = ["+", "-", "*", "/", "==", "<", ">", "&&", ","];  
+  "print",
+  "auto",
+  "if",
+  "while",
+  "for"
+];
+export const operators = ["+", "-", "*", "/", "==", "<", ">", "&&", ","];  

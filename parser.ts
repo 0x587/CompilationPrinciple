@@ -1,6 +1,6 @@
 import { operators } from "./constance";
 import { Token } from "./types/tokenizer";
-import { StatementNode, Operator, ParserStep, VariableDeclarationNode, VariableAssignmentNode, NumberNode, IdentifierNode, MainExpressionNode, SubExpressionNode, PrintStatementNode } from "./types/parser"
+import { StatementNode, Operator, ParserStep, VariableDeclarationNode, VariableAssignmentNode, PrintStatementNode, ExpressionNode, IfStatementNode, WhileStatementNode } from "./types/parser"
 
 export class ParserError extends Error {
     token: Token;
@@ -33,61 +33,47 @@ export class Parser {
         this.nextToken = this.tokenIterator.next().value
     }
 
-    /**
-    * 主表达式解析
-    */
-    private parseMainExpression: ParserStep<MainExpressionNode> = () => {
-        let leftNode: NumberNode | IdentifierNode | MainExpressionNode
+    private parseExpression: ParserStep<ExpressionNode> = () => {
+        let node: ExpressionNode;
         switch (this.currentToken.type) {
-            case "parens":
-                this.eatToken()
-                leftNode = this.parseMainExpression()
-                this.eatToken()
-                break
             case "number":
-                leftNode = {
-                    type: 'number',
+                node = {
+                    type: "numberLiteral",
                     value: Number(this.currentToken.value)
-                }
+                };
                 this.eatToken();
-                break
+                return node;
             case "identifier":
-                leftNode = {
-                    type: "identifier",
-                    value: this.currentToken.value
+                node = { type: "identifier", value: this.currentToken.value };
+                this.eatToken();
+                return node;
+            case "parens":
+                this.eatToken("(");
+                const left = this.parseExpression();
+                const operator = this.currentToken.value;
+                if (!this.isOperatop(operator)) {
+                    throw new ParserError(
+                        `Unexpected token value, expected operator, received ${operator}`,
+                        this.currentToken
+                    );
                 }
                 this.eatToken();
-                break
+                const right = this.parseExpression();
+                this.eatToken(")");
+                return {
+                    type: "binaryExpression",
+                    left,
+                    right,
+                    operator: operator as Operator
+                };
             default:
                 throw new ParserError(
                     `Unexpected token type ${this.currentToken.type}`,
                     this.currentToken
                 );
         }
-        return {
-            type: "mainExpression",
-            left: leftNode,
-            right: this.parseSubExpression()
-        }
-    }
-    /**
-     * 副表达式解析
-     */
-    private parseSubExpression: ParserStep<SubExpressionNode> = () => {
-        if (!this.currentToken || !this.isOperatop(this.currentToken.value))
-            return {
-                type: 'subExpression',
-                isNull: true
-            }
-        const operator = this.currentToken.value
-        this.eatToken()
-        return {
-            type: 'subExpression',
-            operator: operator as Operator,
-            right: this.parseMainExpression(),
-            isNull: false
-        }
-    }
+    };
+
 
     /**
      * print语句解析
@@ -97,7 +83,7 @@ export class Parser {
         this.eatToken("print");
         return {
             type: "printStatement",
-            expression: this.parseMainExpression()
+            expression: this.parseExpression()
         };
     }
 
@@ -115,7 +101,7 @@ export class Parser {
                 type: 'identifier',
                 value: name
             },
-            value: this.parseMainExpression()
+            value: this.parseExpression()
         };
     }
 
@@ -124,7 +110,7 @@ export class Parser {
      * @returns 
      */
     private parseVariableDeclarationStatement: ParserStep<VariableDeclarationNode> = () => {
-        this.eatToken("var");
+        this.eatToken("auto");
         const name = this.currentToken.value;
         this.eatToken();
         this.eatToken("=");
@@ -134,17 +120,26 @@ export class Parser {
                 type: 'identifier',
                 value: name
             },
-            initializer: this.parseMainExpression()
+            initializer: this.parseExpression()
         };
     }
 
     private parseStatement: ParserStep<StatementNode> = () => {
         if (this.currentToken.type === "keyword") {
+            let result
             switch (this.currentToken.value) {
                 case "print":
-                    return this.parsePrintStatement();
-                case "var":
-                    return this.parseVariableDeclarationStatement();
+                    result = this.parsePrintStatement();
+                    this.eatToken(';');
+                    return result;
+                case "auto":
+                    result = this.parseVariableDeclarationStatement();
+                    this.eatToken(';');
+                    return result;
+                case "if":
+                    return this.parseIfStatementNode();
+                case "while":
+                    return this.parseWhileStatementNode();
                 default:
                     throw new ParserError(
                         `Unknown keyword ${this.currentToken.value}`,
@@ -164,6 +159,35 @@ export class Parser {
                 `Unexpected token type, expected keyword or identifier, received ${this.currentToken.type}`
                 , this.currentToken)
         }
+    }
+
+    private parseIfStatementNode: ParserStep<IfStatementNode> = () => {
+        this.eatToken('if')
+        const node: IfStatementNode = {
+            type: 'ifStatementNode',
+            condition: this.parseExpression(),
+            statements: []
+        }
+        this.eatToken('{')
+        while (this.currentToken.value !== '}') {
+            node.statements.push(this.parseStatement())
+        }
+        this.eatToken('}')
+        return node
+    }
+    private parseWhileStatementNode: ParserStep<WhileStatementNode> = () => {
+        this.eatToken('while')
+        const node: WhileStatementNode = {
+            type: 'whileStatementNode',
+            condition: this.parseExpression(),
+            statements: []
+        }
+        this.eatToken('{')
+        while (this.currentToken.value !== '}') {
+            node.statements.push(this.parseStatement())
+        }
+        this.eatToken('}')
+        return node
     }
 
     public parse() {

@@ -7,6 +7,7 @@ export type TokenType =
     | "assignment"
     | "parens"
     | "annotation"
+    | "semicolon"
 
 export interface Token {
     type: TokenType;

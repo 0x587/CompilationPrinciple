@@ -1,5 +1,5 @@
 import { keywords, operators } from "./constance";
-import { TokenType,Token, Matcher } from "./types/tokenizer";
+import { TokenType, Token, Matcher } from "./types/tokenizer";
 export class TokenizerError extends Error {
   index: number;
   constructor(message: string, index: number) {
@@ -34,6 +34,7 @@ export class Tokenizer {
   private matchers = [
     this.regexMatcher(String.raw`^((\/\/[^\n]*)|(\/\*(([^\*][^\/])*|(\*[^\/]*)*|([^\*]*\/)*)*\*\/))`, "annotation"),
     this.regexMatcher(String.raw`^\s+`, "whitespace"),
+    this.regexMatcher(String.raw`^;`, "semicolon"),
     this.regexMatcher(String.raw`^-?((0|[1-9][0-9]*)(\.[0-9]*)?|\.[0-9]*)([eE]-?(0|[1-9][0-9]*))?`, "number"),
     this.regexMatcher(String.raw`^(${keywords.join("|")})`, "keyword"),
     this.regexMatcher(String.raw`^(${operators.map(this.escapeRegEx).join("|")})`, "operator"),
