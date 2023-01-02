@@ -1,4 +1,6 @@
 import { operators } from "./constance";
+import { Token } from "./types/tokenizer";
+import { StatementNode, Operator, ParserStep, VariableDeclarationNode, VariableAssignmentNode, NumberNode, IdentifierNode, MainExpressionNode, SubExpressionNode, PrintStatementNode } from "./types/parser"
 
 export class ParserError extends Error {
     token: Token;
@@ -157,10 +159,11 @@ export class Parser {
                     `Unexpected token value, expected =, received ${this.currentToken.value}`
                     , this.currentToken)
             }
-        } else
+        } else {
             throw new ParserError(
                 `Unexpected token type, expected keyword or identifier, received ${this.currentToken.type}`
                 , this.currentToken)
+        }
     }
 
     public parse() {

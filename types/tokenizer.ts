@@ -1,4 +1,4 @@
-type TokenType =
+export type TokenType =
     | "number"
     | "keyword"
     | "whitespace"
@@ -6,8 +6,9 @@ type TokenType =
     | "identifier"
     | "assignment"
     | "parens"
+    | "annotation"
 
-interface Token {
+export interface Token {
     type: TokenType;
     value: string;
     line?: number;
@@ -16,6 +17,6 @@ interface Token {
 /**
  * 正则匹配器
  */
-interface Matcher {
+export interface Matcher {
     (input: string, index: number): Token | null;
 }

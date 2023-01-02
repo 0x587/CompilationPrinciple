@@ -1,13 +1,16 @@
 import { Tokenizer } from "./tokenizer";
 import { Parser } from "./parser";
 import { Interpreter } from "./interpreter";
+import { readFileSync } from "fs";
 
+const source = readFileSync('input.sy', "utf8")
 const tokenizer = new Tokenizer()
-const tokens = tokenizer.tokenize('c=(1+2*3)')
+const tokens = tokenizer.tokenize(source)
 const parser = new Parser(tokens)
 const programNodes = parser.parse()
 const interpreter = new Interpreter()
 interpreter.interpreter(programNodes)
+console.log(tokens);
 
 /**
  * printStatement       ->      print $mainExpression
