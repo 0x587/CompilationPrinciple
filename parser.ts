@@ -309,10 +309,10 @@ export class Parser {
                     this.identifierTable.pop()
                     break;
                 case 'forStatementNode':
+                    this.identifierTable.push([])
                     this.checkStatement([statement.initializer])
                     this.checkExpression(statement.condition)
                     this.checkStatement([statement.increment])
-                    this.identifierTable.push([])
                     this.checkStatement(statement.statements)
                     this.identifierTable.pop()
                     break;
