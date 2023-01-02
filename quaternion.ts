@@ -17,7 +17,7 @@ export class OperateQuaternion implements Quaternion {
         this.result = result
     }
     public toString(): string {
-        return `(${this.operator}, ${this.argument1}, ${this.argument2 ?? '-'}, ${this.result})`
+        return `(${this.operator}, ${this.argument1}, ${this.argument2 ?? '_'}, ${this.result})`
     }
 }
 
