@@ -3,6 +3,7 @@ import { BinaryExpressionNode, ProgramNode, VariableAssignmentNode } from "./typ
 import { Parser } from "./parser";
 import { Interpreter } from "./interpreter";
 import { readFileSync } from "fs";
+import { QuaternionStorer } from "./quaternion";
 
 const source = readFileSync('input.sy', "utf8")
 const tokenizer = new Tokenizer()
@@ -27,7 +28,9 @@ const outputTetrad = (programNodes: ProgramNode[]) => {
 }
 const parser = new Parser(tokens)
 const programNodes = parser.parse()
-console.log(programNodes);
+// console.log(programNodes)
+const quaternionStorer = new QuaternionStorer(programNodes)
+quaternionStorer.print()
 
 // outputTetrad(programNodes)
 // const interpreter = new Interpreter()
