@@ -257,14 +257,14 @@ export class Parser {
 
     private checkIdentifierDeclaration = (identifier: IdentifierNode): never | void => {
         if (this.indentifierTableInclude(identifier)) {
-            throw new ParserError(`Identifier ${identifier.value} already exists.`, identifier)
+            throw new ParserError(`Identifier "${identifier.value}" already exists.`, identifier)
         }
         this.identifierTable[this.identifierTable.length - 1].push(identifier.value)
     }
 
     private checkIdentifier = (identifier: IdentifierNode): never | void => {
         if (!this.indentifierTableInclude(identifier)) {
-            throw new ParserError(`Identifier ${identifier.value} does not exist.`, identifier)
+            throw new ParserError(`Identifier "${identifier.value}" does not exist.`, identifier)
         }
     }
 

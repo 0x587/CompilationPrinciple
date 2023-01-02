@@ -2,12 +2,9 @@ import { Tokenizer } from "./tokenizer";
 import { BinaryExpressionNode, ProgramNode, VariableAssignmentNode } from "./types/parser";
 import { Parser } from "./parser";
 import { Interpreter } from "./interpreter";
-import { readFileSync } from "fs";
+import { readdir, readFileSync } from "fs";
 import { QuaternionStorer } from "./quaternion";
 
-const source = readFileSync('input.sy', "utf8")
-const tokenizer = new Tokenizer()
-const tokens = tokenizer.tokenize(source)
 const outputTetrad = (programNodes: ProgramNode[]) => {
     let i = 0;
     const BFS = (node: BinaryExpressionNode) => {
@@ -26,11 +23,27 @@ const outputTetrad = (programNodes: ProgramNode[]) => {
     let value = BFS((programNodes[0] as VariableAssignmentNode).value as BinaryExpressionNode)
     console.log(`(=, ${value}, _, result)`);
 }
-const parser = new Parser(tokens)
-const programNodes = parser.parse()
-// console.log(programNodes)
-const quaternionStorer = new QuaternionStorer(programNodes)
-quaternionStorer.print()
+
+
+readdir('test', (err, files) => {
+    files.forEach(file => {
+        console.log(`------------------${file}------------------`);
+        try {
+            const source = readFileSync(`test/${file}`, "utf8")
+            const tokenizer = new Tokenizer()
+            const tokens = tokenizer.tokenize(source)
+            const parser = new Parser(tokens)
+            const programNodes = parser.parse()
+            // console.log(programNodes)
+            const quaternionStorer = new QuaternionStorer(programNodes)
+            quaternionStorer.print()
+
+        } catch (error) {
+            console.log(error);
+        }
+        console.log(`------------------${file}------------------`);
+    })
+})
 
 // outputTetrad(programNodes)
 // const interpreter = new Interpreter()

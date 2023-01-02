@@ -198,7 +198,7 @@ export class QuaternionStorer {
 
     public print() {
         this.quaternions.forEach((quaternion, idx) => {
-            console.log(`${idx}\t` + quaternion.toString())
+            console.log(`${idx}\t${quaternion.toString()}`)
         })
     }
 }
